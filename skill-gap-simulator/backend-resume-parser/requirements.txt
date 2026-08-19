@@ -1,0 +1,6 @@
+fastapi==0.95.0
+uvicorn==0.22.0
+spacy==3.5.0
+PyPDF2==3.0.1
+docx2txt==0.8
+psycopg2-binary==2.9.5

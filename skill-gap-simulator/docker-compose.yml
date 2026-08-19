@@ -1,0 +1,210 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: skillgap-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: skillgap
+      POSTGRES_USER: skillgap_user
+      POSTGRES_PASSWORD: skillgap_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isor -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: skillgap-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build: ./backend-api-gateway
+    container_name: skillgap-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Resume Parser Service
+  resume-parser:
+    build: ./backend-resume-parser
+    container_name: skillgap-resume-parser
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # JD Parser Service
+  jd-parser:
+    build: ./backend-jd-parser
+    container_name: skillgap-jd-parser
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Skill Gap Service
+  skill-gap:
+    build: ./backend-skill-gap
+    container_name: skillgap-skill-gap
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Roadmap Generator Service
+  roadmap-generator:
+    build: ./backend-roadmap-generator
+    container_name: skillgap-roadmap-generator
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # GitHub Integration Service
+  github-integration:
+    build: ./backend-github-integration
+    container_name: skillgap-github-integration
+    restart: unless-stopped
+    ports:
+      - "8005:8005"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Code Evaluation Service
+  code-evaluation:
+    build: ./backend-code-evaluation
+    container_name: skillgap-code-evaluation
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # WebSocket Service
+  websocket:
+    build: ./backend-websocket
+    container_name: skillgap-websocket
+    restart: unless-stopped
+    ports:
+      - "8007:8007"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=skillgap
+      - POSTGRES_USER=skillgap_user
+      - POSTGRES_PASSWORD=skillgap_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
